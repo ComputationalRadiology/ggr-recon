@@ -130,6 +130,8 @@ docker run -it --rm --name ggr-recon \
 ```
 
 ### Example reconstruction with phantom data
+The example data in the repository is an MRI scan of a phantom.
+
 #### First preprocess the input data
 ```console
 docker run --rm -it  --volume `pwd`:/data   crl/ggr-recon \
