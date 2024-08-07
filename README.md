@@ -5,7 +5,18 @@
 # GGR-recon
 A deconvolution-based MRI super-resolution reconstruction method with a gradient guidance regularization (GGR).
 
-The reconstruction comprises two steps: 1) ***preprocessing*** and 2) ***deconvolution***, corresponding to the two python scripts, respectively, ***preprocess.py*** and ***recon.py***. In the preprocessing step, the algorithm deals with image alignment for motion compensation, computes automatically the geometric properties of the high-res reconstruction, creates the filters (for slice profiles and downsamplings) used in the deconvolution step, and offers a gradient guidance reference for the regularization of the deconvolution. The preporcessing also provides a resampling mode, which is usually used to determine the geometric properties of the high-res reconstruction manually. In the deconvolution step, the regularization is created and then the regularized deconvolution is performed in the Fourier domain.
+The reconstruction comprises two steps: 1) ***preprocessing*** and
+2) ***deconvolution***, corresponding to the two python scripts,
+respectively, ***preprocess.py*** and ***recon.py***. In the
+preprocessing step, the algorithm deals with image alignment for motion
+compensation, computes automatically the geometric properties of the
+high-res reconstruction, creates the filters (for slice profiles and
+downsamplings) used in the deconvolution step, and offers a gradient
+guidance reference for the regularization of the deconvolution. The
+preporcessing also provides a resampling mode, which is usually used
+to determine the geometric properties of the high-res reconstruction
+manually. In the deconvolution step, the regularization is created and
+then the regularized deconvolution is performed in the Fourier domain.
 
 ## Dependencies
 ### Docker mode
@@ -27,7 +38,7 @@ If you are using a proxy in your network, you need to configure your docker envi
 #### Build docker image
 ```console
 cd /path/to/your/code/folder
-docker build -t your-ggr-tag .
+docker build -t crl/ggr-recon:latest .
 ```
 In general, the tag is set in the form of foo/bar:x.x.x_\*.\*.\*, where x.x.x denotes the docker image version and \*.\*.\* denotes the software version, e.g., crl/ggr:0.0.1_0.9.0
 
@@ -37,7 +48,7 @@ Run the following command to install the python libraries
 ```console
 python -m pip install -r ./requirements.txt
 ```
-Install the CRKIT software suit and configure it in your *~/.bahsrc*
+Install the CRKIT software suit and configure it in your *~/.bashrc*
 ```console
 wget http://crl.med.harvard.edu/CRKIT/CRKIT-1.6.0-RHEL6.tar.gz
 tar -xf CRKIT-1.6.0-RHEL6.tar.gz
@@ -53,7 +64,7 @@ export DYLD_LIBRARY_PATH=""
 ### View help
 #### Docker mode
 ```console
-docker run -it --rm --name ggr your-ggr-tag preprocess.py -h
+docker run -it --rm --name ggr crl/ggr-recon preprocess.py -h
 ```
 
 ```
@@ -77,7 +88,7 @@ optional arguments:
 ```
 #### Docker mode
 ```console
-docker run -it --rm --name ggr your-ggr-tag recon.py -h
+docker run -it --rm --name ggr crl/ggr-recon recon.py -h
 ```
 
 
@@ -116,6 +127,23 @@ docker run -it --rm --name ggr-recon \
   -v /your/working/folder:/opt/GGR-recon/working \
   -v /your/recons/folder:/opt/GGR-recon/recons \
   your-ggr-tag recon.py --ggr -w 0.03
+```
+
+### Example reconstruction with phantom data
+#### First preprocess the input data
+```console
+docker run --rm -it  --volume `pwd`:/data   crl/ggr-recon \
+  preprocess.py --path /data/ --working_path /data/working/  \
+  --out_path /data/recons/ \
+  --filename /data/acr-axial/ax_t2_phantom.nii.gz /data/acr-coronal/cor_t2_phantom.nii.gz /data/acr-sagittal/sag_t2_phantom.nii.gz
+```
+
+#### Second reconstruct the superresolution output
+```console
+docker run --rm -it  --volume `pwd`:/opt/GGR-recon/data \
+  --volume `pwd`/working:/opt/GGR-recon/working \
+  --volume `pwd`/recons:/opt/GGR-recon/recons  \
+  crl/ggr-recon   recon.py --ggr -w 0.03
 ```
 
 ### Baseline implementation
