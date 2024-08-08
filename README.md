@@ -219,6 +219,6 @@ docker build  -t crl/ggr-recon .
 
 
 ## Applications
-1. "**Super-resolution reconstruction of T2-weighted thick-slice neonatal brain MRI scans.**" Incebak et al. 2002. PMID: 34506677 PMCID: PMC8752487 DOI: 10.1111/jon.12929  https://pubmed.ncbi.nlm.nih.gov/34506677/
+1. "**Super-resolution reconstruction of T2-weighted thick-slice neonatal brain MRI scans.**" Incebak et al. 2022. PMID: 34506677 PMCID: PMC8752487 DOI: 10.1111/jon.12929  https://pubmed.ncbi.nlm.nih.gov/34506677/
 
    This paper examined the use of this type of super-resolution for imaging of neonates. Qualitative and quantitative assessments showed that 3D SRR of several LR images produces images that are of comparable quality to standard 2D HR image acquisition for healthy neonatal imaging without loss of anatomical details with similar edge definition allowing the detection of fine anatomical structures and permitting comparable morphometric measurement.
