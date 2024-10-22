@@ -47,9 +47,9 @@ if args.tik:
 	reg_desc = 'Tikhonov'
 keep_negative_values = args.keep_negative_values
 
-path = '/opt/GGR-recon/data/'
-working_path = '/opt/GGR-recon/working/'
-out_path = '/opt/GGR-recon/recons/'
+path = './data/'#'/opt/GGR-recon/data/'
+working_path = './working/'#'/opt/GGR-recon/working/'
+out_path = './recons/'#'/opt/GGR-recon/recons/'
 
 if not os.path.isdir(out_path):
 	os.mkdir(out_path)
@@ -106,11 +106,11 @@ with progress:
 	task = progress.add_task('[blue]Starting...', total=100)#, start=False)
 	
 	m, n, d = sz
-	fft_img = np.empty([d, n, m, n_imgs], dtype=np.complex64)
+	fft_img = np.empty([d*2, n*2, m*2, n_imgs], dtype=np.complex64)
 	w = np.empty_like(fft_img)
 	for ii in range(0, n_imgs):
 		img = imread(working_path + img_fn[ii])
-		fft_img[...,ii] = fftn(sitk.GetArrayFromImage(img))
+		fft_img[...,ii] = fftn(sitk.GetArrayFromImage(img), [d*2, n*2, m*2])
 		w[...,ii] = loadmat(working_path + h_fn[ii])['fft_win']
 		
 		update_progress(task, '[green]Loading images...', advance=20/n_imgs)
@@ -140,9 +140,9 @@ with progress:
 	#x = np.clip(ifftn(fft_x).real.astype(np.float32), 0, None)
 	#x = np.abs(ifftn(fft_x)).astype(np.float32)
 	if keep_negative_values:
-		x = ifftn(fft_x).real.astype(np.float32)
+		x = ifftn(fft_x).real.astype(np.float32)[:d,:n,:m]
 	else:
-		x = np.clip(ifftn(fft_x).real.astype(np.float32), 0, None)
+		x = np.clip(ifftn(fft_x).real.astype(np.float32), 0, None)[:d,:n,:m]
 	
 	update_progress(task, '[yellow]Saving image...', advance=5)
 	

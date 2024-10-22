@@ -6,8 +6,8 @@ from rich.panel import Panel
 from rich.highlighter import Highlighter
 
 app_name = 'GGR-recon'
-version = '0.9.2'
-release_date = '2024-04-24'
+version = '0.9.3'
+release_date = '2024-10-14'
 
 def print_header(console):
 	console.print('\n\n')
@@ -87,21 +87,21 @@ def recon_tik(y, w, tv_weight=0.1, progress=None, task=None):
 	dx = np.zeros([d,n,m])
 	dx[0,0,0] = -1
 	dx[1,0,0] = 1
-	dx = fftn(dx, [d,n,m])
+	dx = np.abs(fftn(dx, [d,n,m]))
 
 	update_progress(task, advance=advance)
 
 	dy = np.zeros([d,n,m])
 	dy[0,0,0] = -1
 	dy[0,1,0] = 1
-	dy = fftn(dy, [d,n,m])
+	dy = np.abs(fftn(dy, [d,n,m]))
 
 	update_progress(task, advance=advance)
 
 	dz = np.zeros([d,n,m])
 	dz[0,0,0] = -1
 	dz[0,0,1] = 1
-	dz = fftn(dz, [d,n,m])
+	dz = np.abs(fftn(dz, [d,n,m]))
 
 	update_progress(task, advance=advance)
 
@@ -140,23 +140,25 @@ def recon_ggr(y, w, grad_ref, ggr_weight=0.1,
 
 	# created gradient operators
 	d, n, m, n_imgs_per_echo = y.shape
-	d1_m1 = fftn(np.array([[[-1]],[[1]]], dtype=np.float32), [d,n,m])
-	d1_p1 = fftn(np.array([[[1]],[[-1]]], dtype=np.float32), [d,n,m])
-	d2_m1 = fftn(np.array([[[-1],[1]]], dtype=np.float32), [d,n,m])
-	d2_p1 = fftn(np.array([[[1],[-1]]], dtype=np.float32), [d,n,m])
-	d3_m1 = fftn(np.array([[[-1,1]]], dtype=np.float32), [d,n,m])
-	d3_p1 = fftn(np.array([[[1,-1]]], dtype=np.float32), [d,n,m])
+	d1_m1 = np.abs(fftn(np.array([[[-1]],[[1]]], dtype=np.float32), [d,n,m]))
+	d1_p1 = np.abs(fftn(np.array([[[1]],[[-1]]], dtype=np.float32), [d,n,m]))
+	d2_m1 = np.abs(fftn(np.array([[[-1],[1]]], dtype=np.float32), [d,n,m]))
+	d2_p1 = np.abs(fftn(np.array([[[1],[-1]]], dtype=np.float32), [d,n,m]))
+	d3_m1 = np.abs(fftn(np.array([[[-1,1]]], dtype=np.float32), [d,n,m]))
+	d3_p1 = np.abs(fftn(np.array([[[1,-1]]], dtype=np.float32), [d,n,m]))
 
-	d1_m2 = fftn(np.array([[[-1]],[[0]],[[1]]], dtype=np.float32), [d,n,m])
-	d1_p2 = fftn(np.array([[[1]],[[0]],[[-1]]], dtype=np.float32), [d,n,m])
-	d2_m2 = fftn(np.array([[[-1],[0],[1]]], dtype=np.float32), [d,n,m])
-	d2_p2 = fftn(np.array([[[1],[0],[-1]]], dtype=np.float32), [d,n,m])
-	d3_m2 = fftn(np.array([[[-1,0,1]]], dtype=np.float32), [d,n,m])
-	d3_p2 = fftn(np.array([[[1,0,-1]]], dtype=np.float32), [d,n,m])
+	d1_m2 = np.abs(fftn(np.array([[[-1]],[[0]],[[1]]], dtype=np.float32), [d,n,m]))
+	d1_p2 = np.abs(fftn(np.array([[[1]],[[0]],[[-1]]], dtype=np.float32), [d,n,m]))
+	d2_m2 = np.abs(fftn(np.array([[[-1],[0],[1]]], dtype=np.float32), [d,n,m]))
+	d2_p2 = np.abs(fftn(np.array([[[1],[0],[-1]]], dtype=np.float32), [d,n,m]))
+	d3_m2 = np.abs(fftn(np.array([[[-1,0,1]]], dtype=np.float32), [d,n,m]))
+	d3_p2 = np.abs(fftn(np.array([[[1,0,-1]]], dtype=np.float32), [d,n,m]))
 
 	d1 = [d1_m2, d1_m1, 1, d1_p1, d1_p2]
 	d2 = [d2_m2, d2_m1, 1, d2_p1, d2_p2]
 	d3 = [d3_m2, d3_m1, 1, d3_p1, d3_p2]
+
+	GR = fftn(grad_ref, [d,n,m])
 
 	update_progress(task, advance=advance)
 
@@ -170,14 +172,15 @@ def recon_ggr(y, w, grad_ref, ggr_weight=0.1,
 
 				a = alpha**(abs(ll)+abs(pp)+abs(qq))
 				D = d1[ll+p] * d2[pp+p] * d3[qq+p]
-				g = ifftn(D * grad_ref).real.astype(np.float32)
+				#g = ifftn(D * GR).real.astype(np.float32)
+				#g = g[:d,:n,:m]
 
-				sg = np.sort(np.abs(g)).flatten()
-				tau = sg[int(sg.size * tau_percent)]
+				#sg = np.sort(np.abs(g)).flatten()
+				#tau = sg[int(sg.size * tau_percent)]
 
-				G = fftn(g / (1 + (tau / g)**4), [d,n,m])
+				#G = fftn(g / (1 + (tau / g)**4), [d,n,m])
 
-				DG += a * np.conj(D) * G
+				DG += a * np.conj(D) * GR
 				DD += a * np.conj(D) * D
 
 				update_progress(task, advance=1)

@@ -199,7 +199,7 @@ for ii in track(range(0, n_imgs), '[cyan]Creating filters...'):
 		if factor > 1:
 			# FWHM in the unit of number of pixel and convert it to sigma
 			sigma = factor / 2.355
-			filter_len = sz[jj]
+			filter_len = sz[jj] *2
 			gw = signal.windows.gaussian(filter_len, std=sigma)
 			gw /= np.sum(gw)
 			# put it onto 3D space
@@ -208,17 +208,19 @@ for ii in track(range(0, n_imgs), '[cyan]Creating filters...'):
 			gw = np.reshape(gw, shape)
 			gw = np.roll(gw, -filter_len//2, axis=jj)
 			# move it to Fourier domain
-			GW = np.abs(fftn(gw, sz))
+			GW = np.abs(fftn(gw, [sz[0]*2, sz[1]*2, sz[2]*2]))
 
-			w1_sz = np.array(sz, dtype=np.int64)
-			w1_sz[jj] = lr_size[jj,ii] // 2
-			w0_sz = np.array(sz, dtype=np.int64)
-			w0_sz[jj] -= lr_size[jj,ii]
+			w1_sz = np.array([sz[0]*2, sz[1]*2, sz[2]*2], dtype=np.int64)
+			w1_sz[jj] = lr_size[jj,ii]# // 2
+			w0_sz = np.array([sz[0]*2, sz[1]*2, sz[2]*2], dtype=np.int64)
+			w0_sz[jj] -= lr_size[jj,ii]*2
 			w = np.concatenate([np.ones(w1_sz), \
 					np.zeros(w0_sz), np.ones(w1_sz)], axis=jj)
+			#w = np.abs(fftn(ifftn(w), [sz[0]*2, sz[1]*2, sz[2]*2]))
 			#fft_win *= np.transpose(w * GW + 1j * w * GW, axes=[2,1,0])
 			if max_factor < factor:
-				fft_win = np.transpose(w * GW + 1j * w * GW, axes=[2,1,0])
+				#fft_win = np.transpose(w * GW + 1j * w * GW, axes=[2,1,0])
+				fft_win = np.transpose(GW, axes=[2,1,0])
 				max_factor = factor
 
 	savemat(working_path+'h_'+img_fn[ii]+'.mat', {'fft_win': fft_win})
