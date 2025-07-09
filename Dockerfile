@@ -37,12 +37,14 @@ ENV LC_ALL=en_US.UTF-8
 ENV LANGUAGE=en_US.UTF-8
 ENV LC_TYPE=en_US.UTF-8
 
+# build-essential and git are needed if a python wheel is no longer supported,
+# and must be built from scratch.
 RUN DEBIAN_FRONTEND=noninteractive apt-get \
     --option acquire::http::proxy="${HTTP_PROXY}" \
     --option acquire::https::proxy=false \
     install -y \
     build-essential software-properties-common \
-    wget curl vim nano zip \
+    wget curl vim nano zip git \
     python3-pip
 
 # install CRKIT
