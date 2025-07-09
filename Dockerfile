@@ -1,26 +1,49 @@
-FROM ubuntu:20.04
+FROM ubuntu:jammy
 ARG DEBIAN_FRONTEND=noninteractive
+
+# A word about HTTP_PROXY
+# On systems that need to access a proxy to download packages, the build
+# should be called with a build-arg that passes in the proxy to use.
+#  A symptom that this is needed is that apt-get cannot access packages.
+#  pip uses a different mechanism for accessing via a proxy.
+# This is not needed if building on a system that does not  use a proxy.
+#
+# apt can be enabled for a proxy with this syntax:
+# RUN DEBIAN_FRONTEND=noninteractive apt-get \
+#    --option acquire::http::proxy="${HTTP_PROXY}" \
+#    --option acquire::https::proxy=false \
+#        -y update
+#
+# To set the proxy variable from the build environment:
+# docker build --build-arg HTTP_PROXY .
+#
+
 
 LABEL vendor="Computational Radiology Laboratory"
 LABEL vendor="crl.med.harvard.edu"
 
 # Update the ubuntu.
-RUN apt-get -y update && \
-    apt-get -y upgrade
+RUN apt-get -y \
+    --option acquire::http::proxy="${HTTP_PROXY}" \
+    --option acquire::https::proxy=false \
+    update && \
+    apt-get -y \
+    --option acquire::http::proxy="${HTTP_PROXY}" \
+    --option acquire::https::proxy=false \
+    upgrade
 
-# FIX THE MISSING LOCALE in ubuntu
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y locales \
-    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
-    && dpkg-reconfigure --frontend=noninteractive locales \
-    && update-locale LANG=en_US.UTF-8
-
-ENV LANGUAGE=en_US.UTF-8
-ENV LC_ALL=en_US.UTF-8
 ENV LANG=en_US.UTF-8 
+ENV LC_ALL=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
 ENV LC_TYPE=en_US.UTF-8
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget \
-        curl vim nano zip
+RUN DEBIAN_FRONTEND=noninteractive apt-get \
+    --option acquire::http::proxy="${HTTP_PROXY}" \
+    --option acquire::https::proxy=false \
+    install -y \
+    build-essential software-properties-common \
+    wget curl vim nano zip \
+    python3-pip
 
 # install CRKIT
 RUN mkdir /opt/crkit && \
@@ -29,11 +52,10 @@ RUN mkdir /opt/crkit && \
         tar -xf CRKIT-1.6.0-RHEL6.tar.gz && \
         rm CRKIT-1.6.0-RHEL6.tar.gz
 
-RUN apt-get install -y software-properties-common
-
 COPY requirements.txt /tmp/requirements.txt
 RUN apt-get install -y python3-pip
 RUN pip3 install -r /tmp/requirements.txt
+RUN pip3 install SimpleITK
 
 # add env variables
 ENV BUNDLE /opt/crkit/crkit-1.6.0
@@ -58,4 +80,11 @@ WORKDIR /opt/GGR-recon
 ENV msg="\nRun one of these programs:\n"
 CMD echo $msg; find /opt/GGR-recon/ -type f -name "*.py"; echo $msg
 
+
+# How to build the container:
+# export HTTP_PROXY=http://proxy.example.com:3128
+# docker build --network=host --build-arg HTTP_PROXY=${HTTP_PROXY} \
+#  --no-cache=true --progress=plain \
+#  -t crl/ggr-recon:latest -f Dockerfile .
+#
 
