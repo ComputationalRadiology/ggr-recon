@@ -13,7 +13,7 @@ compensation, computes automatically the geometric properties of the
 high-res reconstruction, creates the filters (for slice profiles and
 downsamplings) used in the deconvolution step, and offers a gradient
 guidance reference for the regularization of the deconvolution. The
-preporcessing also provides a resampling mode, which is usually used
+preprocessing also provides a resampling mode, which is usually used
 to determine the geometric properties of the high-res reconstruction
 manually. In the deconvolution step, the regularization is created and
 then the regularized deconvolution is performed in the Fourier domain.
